@@ -182,7 +182,20 @@ var searchInCache = function(searchString){
         return s.searchString === searchString;
     });
     return val;
-};   
+};
+var renewToken = function(){
+
+        var options = {
+            hostname: 'api.thetvdb.com',
+            port: 443,
+            path: '/refresh_token',
+            method: 'get',
+            headers: {            
+                'Authorization': "Bearer " + tokenFile.token
+            }               
+        };
+
+};
 
 
 module.exports = {

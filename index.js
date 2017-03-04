@@ -1,13 +1,24 @@
 //core deps
 var express     = require('express');
+var jwt         = require('express-jwt');
 var util        = require('util');
 var app         = express();
 
 //my deps
 var api         = require('./modules/api');
+var authSecrets = require('./authSecrets.json');
+
 
 //hack
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+
+//middleware
+var clientAuth = jwt({
+    secret: authSecrets.secret,
+    audience: authSecrets.audience
+});
+
 
 //routes
 //enable CORS
@@ -16,8 +27,16 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
-//route - search by name
-app.get('/search/:show', function(req,res){    
+
+
+/* 
+Public routes
+Client does not need to be Authenticated
+
+1. Search TV Show by Name
+
+*/
+app.get('/public/search/:show', function(req,res){    
     console.log("searching for...", req.params.show);
     
     api.searchByName(req.params.show).then(function(reData){
@@ -28,10 +47,19 @@ app.get('/search/:show', function(req,res){
     });
 });
 
+/* 
+Private routes
+Client does not need to be Authenticated
+
+1. Add Show to FAV
+2. Add Show to WatchList
+*/
+
+
 
 //init TVDB API
 console.log("Init TVDB API...");
-api.initAPI();
+//api.initAPI();
 
 
 /*
