@@ -10,19 +10,20 @@ var tokenFile   = require('./token.json');
 
 
 //cache object
-var cache       = [];
-
+var cache               = [];
+var seriesDetailsCache  = [];
 
 var checkTokenExpireTime = function(){
     //check for token expire time
     console.log("Expire Time: ", tokenFile.expireTime);
-    console.log("Current Time: ", moment());    
-    return moment(tokenFile.expireTime).isBefore(moment());
+    console.log("Current Time: ", moment().utc());    
+    return moment(tokenFile.expireTime).isBefore(moment().utc());
 };
 var saveTokenToFile = function(tokenData){
     //set expire time to 20hrs from now
     //maybe shld be 24 really
-    var expireTime = moment().add(20, 'h');
+    var nowTime = moment().utc();
+    var expireTime = nowTime.add(20, 'h');
     tokenFile.expireTime = expireTime;
     tokenFile.token = tokenData;
 
@@ -82,6 +83,7 @@ var init = function(){
             //expired token
             //need to renew
             console.log("Renewing Token...");
+            login();
             //
         }else{
             console.log("Token is good!");
@@ -101,13 +103,13 @@ var searchByName = function(searchString){
 
     //return a promise
     return new Promise(function(resolve,reject){
-
+        
         var retData = [];        
 
         var options = {
             hostname: 'api.thetvdb.com',
             port: 443,
-            path: '/search/series?name=' + searchString.replace(" ", "%20"),
+            path: '/search/series?name=' + searchString.replace(/ /g, "%20"),
             method: 'get',
             headers: {            
                 'Authorization': "Bearer " + tokenFile.token
@@ -160,6 +162,134 @@ var searchByName = function(searchString){
 
     });        
 };
+//search Series by ID
+var getPosterBySeriesID = function(seriesID){
+    //return a promise
+    return new Promise(function(resolve,reject){
+        
+        var retData = [];        
+
+        var options = {
+            hostname: 'api.thetvdb.com',
+            port: 443,
+            path: '/series/' + seriesID + '/images/query?keyType=poster',
+            method: 'get',
+            headers: {            
+                'Authorization': "Bearer " + tokenFile.token
+            }               
+        };
+
+        var req = https.request(options, (res) => {
+            console.log('statusCode:', res.statusCode);
+            //console.log('headers:', res.headers);               
+
+            res.on('data', (d) => {    
+                retData +=  d;                        
+            });
+
+            res.on('end', function(){
+                if(res.statusCode != 200){
+                    reject(res.statusCode);
+                }else{
+                    console.log("Adding Posters To Cache...", seriesID);
+                    addPosterToCache(retData,seriesID);
+                    resolve(retData);
+                }                
+            });
+
+        });
+
+
+        req.on('error', function(err){
+            console.log(err);
+            reject(err);
+        });    
+
+        if(checkTokenExpireTime()){
+            console.log("expired token!");
+
+
+        }else{           
+            
+            console.log("calling cache...");            
+            var data = searchPosterInCache(seriesID);                        
+            if(data){
+                console.log("cache found...");
+                resolve(data);
+            }else{
+                console.log("cache not found");
+                req.end();
+            }
+            
+        }        
+
+    });
+
+};
+var getSeriesDetails = function(seriesID){
+    //return a promise
+    return new Promise(function(resolve,reject){
+        
+        var retData = [];        
+
+        var options = {
+            hostname: 'api.thetvdb.com',
+            port: 443,
+            path: '/series/' + seriesID,
+            method: 'get',
+            headers: {            
+                'Authorization': "Bearer " + tokenFile.token
+            }               
+        };
+
+        var req = https.request(options, (res) => {
+            console.log('statusCode:', res.statusCode);
+            //console.log('headers:', res.headers);               
+
+            res.on('data', (d) => {    
+                retData +=  d;                        
+            });
+
+            res.on('end', function(){
+                if(res.statusCode != 200){
+                    reject(res.statusCode);
+                }else{
+                    console.log("Getting Series Details...", seriesID);
+                    addSeriesDetailsToCache(retData,seriesID);
+                    resolve(retData);
+                }                
+            });
+
+        });
+
+
+        req.on('error', function(err){
+            console.log(err);
+            reject(err);
+        });    
+
+        if(checkTokenExpireTime()){
+            console.log("expired token!");
+
+
+        }else{           
+            
+            console.log("calling cache...");            
+            var data = searchSeriesDetailsInCache(seriesID);                        
+            if(data){
+                console.log("cache found...");
+                resolve(data);
+            }else{
+                console.log("cache not found");
+                req.end();
+            }
+            
+        }        
+
+    });
+
+};
+
 //add search results to cache
 var addToCache = function(cacheObject, searchString){
 
@@ -175,6 +305,23 @@ var addToCache = function(cacheObject, searchString){
     });
     cache.push(tmp);        
 };
+//add series details to cache
+var addSeriesDetailsToCache = function(cacheObject, seriesID){
+
+    cacheObject = JSON.parse(cacheObject);
+
+    /*
+    var tmp = {
+        "seriesID": seriesID,
+        "data" : []
+    };
+
+    _.forEach(cacheObject.data, function(value){                
+        tmp.data.push(value);
+    });
+    */
+    seriesDetailsCache.push(cacheObject);        
+};
 //find searchString in cache
 var searchInCache = function(searchString){    
     var val = _.find(cache, function(s){
@@ -183,22 +330,24 @@ var searchInCache = function(searchString){
     });
     return val;
 };
-var renewToken = function(){
-
-        var options = {
-            hostname: 'api.thetvdb.com',
-            port: 443,
-            path: '/refresh_token',
-            method: 'get',
-            headers: {            
-                'Authorization': "Bearer " + tokenFile.token
-            }               
-        };
-
+//find series details in cache
+var searchSeriesDetailsInCache = function(seriesID){    
+    var val = _.find(seriesDetailsCache, function(s){
+        console.log("looping in cache...");
+        console.log(s);
+        console.log(s.data.id);
+        return s.data.id == seriesID;
+    });
+    return val;
 };
+var renewToken = function(){
+    login();
+};
+
 
 
 module.exports = {
     initAPI: init,
-    searchByName: searchByName
+    searchByName: searchByName,
+    getSeriesDetails: getSeriesDetails
 }

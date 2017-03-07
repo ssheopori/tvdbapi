@@ -28,7 +28,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-
 /* 
 Public routes
 Client does not need to be Authenticated
@@ -47,6 +46,18 @@ app.get('/public/search/:show', function(req,res){
     });
 });
 
+app.get('/public/getSeriesDetails/:seriesID', function(req,res){    
+    console.log("getting series details for...", req.params.seriesID);
+    
+    api.getSeriesDetails(req.params.seriesID).then(function(reData){
+        console.log("data to send back: ", reData);
+        res.send(reData);
+    }).catch(function(err){
+        console.log("no data...", err);
+    });
+});
+
+
 /* 
 Private routes
 Client does not need to be Authenticated
@@ -59,7 +70,7 @@ Client does not need to be Authenticated
 
 //init TVDB API
 console.log("Init TVDB API...");
-//api.initAPI();
+api.initAPI();
 
 
 /*
