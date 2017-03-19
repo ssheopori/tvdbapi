@@ -41,8 +41,9 @@ app.get('/public/search/:show', function(req,res){
     api.searchByName(req.params.show).then(function(reData){
         console.log("data to send back: ", reData);
         res.send(reData);
-    }).catch(function(err){
+    },function(err){
         console.log("no data...", err);
+        res.sendStatus(err);
     });
 });
 
@@ -52,8 +53,9 @@ app.get('/public/getSeriesDetails/:seriesID', function(req,res){
     api.getSeriesDetails(req.params.seriesID).then(function(reData){
         console.log("data to send back: ", reData);
         res.send(reData);
-    }).catch(function(err){
+    },function(err){
         console.log("no data...", err);
+        res.sendStatus(err);
     });
 });
 
