@@ -15,14 +15,14 @@ var seriesDetailsCache  = [];
 
 var checkTokenExpireTime = function(){
     //check for token expire time
-    console.log("Expire Time: ", tokenFile.expireTime);
-    console.log("Current Time: ", moment().utc());    
-    return moment(tokenFile.expireTime).isBefore(moment().utc());
+    console.log("Expire Time: ", moment(tokenFile.expireTime));
+    console.log("Current Time: ", moment());    
+    return moment(tokenFile.expireTime).isBefore(moment());
 };
 var saveTokenToFile = function(tokenData){
     //set expire time to 20hrs from now
     //maybe shld be 24 really
-    var nowTime = moment().utc();
+    var nowTime = moment();
     var expireTime = nowTime.add(20, 'h');
     tokenFile.expireTime = expireTime;
     tokenFile.token = tokenData;
@@ -136,29 +136,31 @@ var searchByName = function(searchString){
 
         });
 
-
-        req.on('error', function(err){
+        //Sid
+        //March-28-2017
+        //not sure if we need this here, commenting out req.on error
+        /*req.on('error', function(err){
             console.log(err);
             reject(err);
-        });    
+        });*/
 
         if(checkTokenExpireTime()){
-            console.log("expired token!");
-
-
-        }else{           
+            console.log("Token has expired. Logging in to get new token");
+            login();
+        }
+        
             
-            console.log("calling cache...");            
-            var data = searchInCache(searchString);                        
-            if(data){
-                console.log("cache found...");
-                resolve(data);
-            }else{
-                console.log("cache not found");
-                req.end();
-            }
+        console.log("calling cache...");            
+        var data = searchInCache(searchString);                        
+        if(data){
+            console.log("cache found...");
+            resolve(data);
+        }else{
+            console.log("cache not found");
+            req.end();
+        }
             
-        }        
+                
 
     });        
 };
@@ -200,28 +202,29 @@ var getPosterBySeriesID = function(seriesID){
         });
 
 
-        req.on('error', function(err){
+        //Sid
+        //March-28-2017
+        //not sure if we need this here, commenting out req.on error
+        /*req.on('error', function(err){
             console.log(err);
             reject(err);
-        });    
+        });*/
 
         if(checkTokenExpireTime()){
-            console.log("expired token!");
-
-
-        }else{           
+            console.log("Token has expired. Logging in to get new token");
+            login();
+        }
             
-            console.log("calling cache...");            
-            var data = searchPosterInCache(seriesID);                        
-            if(data){
-                console.log("cache found...");
-                resolve(data);
-            }else{
-                console.log("cache not found");
-                req.end();
-            }
+        console.log("calling cache...");            
+        var data = searchPosterInCache(seriesID);                        
+        if(data){
+            console.log("cache found...");
+            resolve(data);
+        }else{
+            console.log("cache not found");
+            req.end();
+        }
             
-        }        
 
     });
 
@@ -262,29 +265,30 @@ var getSeriesDetails = function(seriesID){
 
         });
 
-
-        req.on('error', function(err){
+        //Sid   
+        //March-28-2017
+        //not sure if we need this here, commenting out req.on error
+        /*req.on('error', function(err){
             console.log(err);
             reject(err);
-        });    
+        });*/
 
         if(checkTokenExpireTime()){
-            console.log("expired token!");
-
-
-        }else{           
-            
-            console.log("calling cache...");            
-            var data = searchSeriesDetailsInCache(seriesID);                        
-            if(data){
-                console.log("cache found...");
-                resolve(data);
-            }else{
-                console.log("cache not found");
-                req.end();
-            }
-            
+            console.log("Token has expired. Logging in to get new token");
+            login();
         }        
+            
+        console.log("calling cache...");            
+        var data = searchSeriesDetailsInCache(seriesID);                        
+        if(data){
+            console.log("cache found...");
+            resolve(data);
+        }else{
+            console.log("cache not found");
+            req.end();
+        }
+            
+                
 
     });
 
