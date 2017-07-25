@@ -2,4 +2,4 @@ node_modules
 certs
 modules/secrets.json
 modules/token.json
-authSecrets.json
+auth0.json
