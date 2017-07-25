@@ -6,7 +6,6 @@ var app         = express();
 
 //my deps
 var api         = require('./modules/api');
-var authSecrets = require('./authSecrets.json');
 
 
 //hack
@@ -14,10 +13,12 @@ var authSecrets = require('./authSecrets.json');
 
 
 //middleware
+/*
 var clientAuth = jwt({
     secret: authSecrets.secret,
     audience: authSecrets.audience
 });
+*/
 
 
 //routes
@@ -33,6 +34,7 @@ Public routes
 Client does not need to be Authenticated
 
 1. Search TV Show by Name
+2. Get Show Details by Series ID
 
 */
 app.get('/public/search/:show', function(req,res){    
@@ -62,7 +64,7 @@ app.get('/public/getSeriesDetails/:seriesID', function(req,res){
 
 /* 
 Private routes
-Client does not need to be Authenticated
+Client does need to be Authenticated
 
 1. Add Show to FAV
 2. Add Show to WatchList
@@ -74,15 +76,6 @@ Client does not need to be Authenticated
 console.log("Init TVDB API...");
 api.initAPI();
 
-
-/*
-var _ = require('lodash');
-var cache = require('./tmp.json');
-var blah = _.find(cache, function(s){        
-    return s.searchString === 'Lucifer';
-});
-console.log(blah);
-*/
 
 
 //listner
