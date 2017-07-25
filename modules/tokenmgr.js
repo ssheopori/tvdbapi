@@ -94,9 +94,11 @@ var login = function(){
 };
 
 
-
+var getReadOnlyToken = function(){
+    return tokenFile.token;    
+}
 
 module.exports = {
     validateToken: validateToken,
-    tokenFile: tokenFile
+    getReadOnlyToken: getReadOnlyToken
 }

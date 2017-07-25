@@ -20,7 +20,7 @@ var searchByName = function(searchString){
             path: '/search/series?name=' + searchString.replace(/ /g, "%20"),
             method: 'get',
             headers: {            
-                'Authorization': "Bearer " + tokenMgr.tokenFile.token
+                'Authorization': "Bearer " + tokenMgr.getReadOnlyToken
             }               
         };
 
@@ -44,7 +44,7 @@ var searchByName = function(searchString){
         
 
         if(tokenMgr.validateToken()){            
-                         
+
             var data = cacheMgr.searchInCache(searchString);
             
             if(data){
@@ -81,7 +81,7 @@ var getPosterBySeriesID = function(seriesID){
             path: '/series/' + seriesID + '/images/query?keyType=poster',
             method: 'get',
             headers: {            
-                'Authorization': "Bearer " + tokenMgr.tokenFile.token
+                'Authorization': "Bearer " + tokenMgr.getReadOnlyToken
             }               
         };
 
@@ -128,7 +128,7 @@ var getSeriesDetails = function(seriesID){
             path: '/series/' + seriesID,
             method: 'get',
             headers: {            
-                'Authorization': "Bearer " + tokenMgr.tokenFile.token
+                'Authorization': "Bearer " + tokenMgr.getReadOnlyToken
             }               
         };
 
