@@ -1,34 +1,54 @@
-//Code Deps
+//Core Deps
 var moment      = require('moment');
 var fs          = require('fs');
 var https       = require('https');
 
 //my Deps
 var tokenFile   = require('./token.json');
+var apikey      = require('./secrets.json');
 
 
 var validateToken = function(){
     console.log("checking existing token");
-        
-    //check tokenfile elements
-    if(tokenFile.token && tokenFile.expireTime){
-        //token exists, now check if its expired
-        console.log("checking for expire time for token...");
-        if(checkTokenExpireTime()){
-            //expired token
-            //need to renew
-            console.log("Renewing Token...");
-            return(login());
-            
+
+
+    return new Promise(function(resolve, reject){
+
+        //if both values are present
+        if(tokenFile.token && tokenFile.expireTime){
+            //token exists, now check if its expired
+            console.log("checking for expire time for token...");
+            if(checkTokenExpireTime()){
+                
+                //expired token //need to renew
+                console.log("Token Has Expired.");
+
+                login().then(function(res){                    
+                    resolve('login success');
+                },function(err){
+                    console.log('login failed');                    
+                    reject(err);
+                });            
+                
+            }else{
+                console.log("Token is good!");            
+                resolve('Token is good');
+            }
         }else{
-            console.log("Token is good!");            
-            return true;
+            //we need to login and gen new token
+            console.log("Logging into TVDB...");
+            login().then(function(res){
+                resolve('login success');
+            },function(err){
+                reject(err);
+            });            
         }
-    }else{
-        //we need to login and gen new token
-        console.log("Logging into TVDB...");
-        return(login());
-    }
+
+
+
+    });
+        
+
 }
 
 
@@ -57,40 +77,44 @@ var saveTokenToFile = function(tokenData){
 //login to TVDB and generate new TOKEN
 var login = function(){
 
-    var options = {
-        hostname: 'api.thetvdb.com',
-        port: 443,
-        path: '/login',
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json'            
-        }               
-    };
+    return new Promise(function(resolve, reject){
 
-    var req = https.request(options, (res) => {
+        var options = {
+            hostname: 'api.thetvdb.com',
+            port: 443,
+            path: '/login',
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json'            
+            }               
+        };
 
-        console.log('statusCode:', res.statusCode);
-        console.log('headers:', res.headers);               
+        var req = https.request(options, (res) => {
 
-        res.on('data', (d) => {
-            var retData = JSON.parse(d);
-            console.log("Token Received: ", retData.token);
+            console.log('statusCode:', res.statusCode);
+            console.log('headers:', res.headers);               
 
-            saveTokenToFile(retData.token);
-            return true;
+            res.on('data', (d) => {
+                var retData = JSON.parse(d);
+                console.log("Token Received: ", retData.token);
+
+                saveTokenToFile(retData.token);
+                resolve();
+            });
+
         });
 
+
+        req.on('error', function(err){
+            console.log(err);
+            reject(err);
+        });
+
+        req.write(JSON.stringify(apikey));
+
+        req.end();
     });
 
-
-    req.on('error', function(err){
-        console.log(err);
-        return false;
-    });
-
-//    req.write(JSON.stringify(apikey));
-
-    req.end();
 };
 
 

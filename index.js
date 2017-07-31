@@ -72,17 +72,29 @@ Client does need to be Authenticated
 
 
 
+var port = process.env.port || 3131;
+
 //init TVDB API
 console.log("Init TVDB API...");
-api.initAPI();
+api.initAPI().then(function(success){
+    
+    console.log('API INIT COMPLETE');
+    console.log(success);
+    
+    //listner    
+    app.listen(port, function() {
+        console.log('App listening on port: ', port);
+    });
 
 
 
-//listner
-var port = process.env.port || 3131;
-app.listen(port, function() {
-    console.log('App listening on port: ', port);
+}, function(error){
+    console.log('ERR');
+    console.log(error);
 });
+
+
+
 
 
 

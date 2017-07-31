@@ -181,7 +181,16 @@ var getSeriesDetails = function(seriesID){
 
 
 var init = function(){
-    tokenMgr.validateToken();
+
+    return new Promise(function(resolve, reject){
+
+        tokenMgr.validateToken().then(function(success){            
+            resolve('API Init Complete! Success');
+        }, function(error){            
+            reject(error);
+        });    
+    });   
+
 }
 
 
